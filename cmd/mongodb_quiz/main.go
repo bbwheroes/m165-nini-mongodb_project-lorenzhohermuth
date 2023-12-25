@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
+	"m165/nini/mongodb_quiz/pkg/mongodb"
 )
 
 func main() {
-	fmt.Println("Hello World!")
+	mongodb.GetAll()
 }
