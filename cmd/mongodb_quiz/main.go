@@ -1,9 +1,9 @@
 package main
 
 import (
-	"m165/nini/mongodb_quiz/pkg/mongodb"
+	"m165/nini/mongodb_quiz/pkg/tea"
 )
 
 func main() {
-	mongodb.GetAll()
+	tea.Exec()
 }
