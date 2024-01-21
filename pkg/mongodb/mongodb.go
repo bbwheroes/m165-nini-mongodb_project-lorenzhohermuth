@@ -14,41 +14,48 @@ import (
 
 type inputFunc func()
 
-var mongoContext *context.Context
-var mongoClient *mongo.Client
+const db string = "webapp"
+const coll string = "pokemon"
 
-func connect(fn inputFunc) {
+func execute(bsonQuery bson.D, bsonProj bson.D) {
+    client, ctx, cancel := connect()
+    collection := client.Database(db).Collection(coll)
+    opts := options.Find().SetProjection(bsonProj)
+    cur, err := collection.Find(ctx, bsonQuery, opts)
+    if err != nil { log.Fatal(err)}
+    for cur.Next(ctx) {
+	var result bson.D
+	err := cur.Decode(&result)
+	if err != nil {
+	    log.Fatal(err)
+	}
+	log.Println(result)
+    }
+    fmt.Println("Executed")
+    defer deferFunc(cur,client, ctx, cancel)
+}
+
+func connect() (*mongo.Client, context.Context, context.CancelFunc){
     ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
     clientOpts := options.Client().ApplyURI("mongodb://mongo:secretmongo@localhost:27017")
-    client, err := mongo.Connect(ctx, clientOpts)
-    err = client.Ping(ctx, readpref.Primary())
-    mongoClient = client 
-    mongoContext = &ctx
+    client, connectErr := mongo.Connect(ctx, clientOpts)
+    if connectErr != nil {
+	panic(connectErr)
+    }
+    if pingErr := client.Ping(ctx, readpref.Primary()) ; pingErr != nil {
+	panic(pingErr)
+    }
     fmt.Println("Connected")
-    fn()
-    fmt.Println("Executed")
-    defer cancel()
-    defer func() {
-    if err = client.Disconnect(ctx); err != nil {
+    return client, ctx, cancel
+}
+
+func deferFunc(cur *mongo.Cursor, client *mongo.Client, ctx context.Context, cancel context.CancelFunc) {
+    cur.Close(ctx)
+    cancel()
+    func() {
+      if err := client.Disconnect(ctx); err != nil {
         panic(err)
 	}
     }()
-    defer fmt.Println("Disconnected")
-}
-
-func creatGetFunc(db string, coll string) func() {
-    return func() {
-	collection := mongoClient.Database(db).Collection(coll)
-	cur, err := collection.Find(*mongoContext, bson.D{})
-	if err != nil { log.Fatal(err)}
-	for cur.Next(*mongoContext) {
-	    var result bson.D
-	    err := cur.Decode(&result)
-	    if err != nil {
-		log.Fatal(err)
-	    }
-	    log.Println(result)
-	}
-	defer cur.Close(*mongoContext)
-    }
+    fmt.Println("Disconnected")
 }
