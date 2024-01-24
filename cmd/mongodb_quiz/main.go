@@ -18,7 +18,8 @@ const pokemonAmount int = 250
 const amountPokemonOnScreen = 4
 
 var points int = 0
-var name string = "NO NAME"
+var round int = 0
+var name string = "Max"
 
 func main() {
 	p := tea.NewProgram(initModel())
@@ -39,8 +40,10 @@ type Model struct {
 }
 
 func initModel() Model {
+    points = 0
+    round = 0
     ti := textinput.New()
-    ti.Placeholder = "Max"
+    ti.Placeholder = name
     ti.Focus()
     ti.CharLimit = 156
     ti.Width = 20
@@ -58,7 +61,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
     var cmd tea.Cmd
     if m.isStartScreen {
 	return handleStartScreen(cmd, msg, m)
-    } else {
+    }else if m.isEndScreen {
+	return handleEndScreen(cmd,msg,m)
+    }else {
 	return handleGameScreen(cmd, msg, m)
     }
 }
@@ -80,33 +85,55 @@ func handleStartScreen(cmd tea.Cmd, msg tea.Msg, m Model) (tea.Model, tea.Cmd) {
 func handleGameScreen(cmd tea.Cmd, msg tea.Msg, m Model) (tea.Model, tea.Cmd) {
     switch msg := msg.(type) {
 	case tea.KeyMsg:
-
-	    // Cool, what was the actual key pressed?
 	    switch msg.String() {
 
-	    // These keys should exit the program.
 	    case "ctrl+c", "q":
 		return m, tea.Quit
 
-	    // The "up" and "k" keys move the cursor up
 	    case "up", "k":
 		if m.Index > 0 {
 		    m.Index--
 		}
 
-	    // The "down" and "j" keys move the cursor down
 	    case "down", "j":
 		if m.Index < len(m.Answers)-1 {
 		    m.Index++
 		}
 
-	    // The "enter" key and the spacebar (a literal space) toggle
-	    // the selected state for the item that the cursor is pointing at.
 	    case "enter", " ":
 		if contains(m.RightIndex, m.Index) {
 		    points++
 		}
 		return build(question.GenerateQuestion(), amountPokemonOnScreen), nil
+	    }
+    }
+    return m, nil
+}
+
+func handleEndScreen(cmd tea.Cmd, msg tea.Msg, m Model) (tea.Model, tea.Cmd) {
+    switch msg := msg.(type) {
+	case tea.KeyMsg:
+	    switch msg.String() {
+
+	    case "ctrl+c", "q":
+		return m, tea.Quit
+
+	    case "up", "k":
+		if m.Index > 0 {
+		    m.Index--
+		}
+
+	    case "down", "j":
+		if m.Index < len(m.Answers)-1 {
+		    m.Index++
+		}
+
+	    case "enter", " ":
+		if contains(m.RightIndex, m.Index) {
+		    return initModel(), nil
+		} else {
+		    return m, tea.Quit
+		}
 	    }
     }
     return m, nil
@@ -126,10 +153,17 @@ func (m Model) View() string {
     if m.isStartScreen {
 	s += m.nameInput.View()
     } else if m.isEndScreen{
-
+	s += "Game Finished\n"
+	s += m.Question + "\n"
+	for i, ans := range m.Answers{
+	    cursor := " " // no cursor
+	    if m.Index == i {
+		cursor = ">" // cursor!
+	    }
+	    s += fmt.Sprintf("%s %s\n", cursor, ans)
+	}
     } else {
-	s += fmt.Sprintf("Player: %v\n", name)
-	s += fmt.Sprintf("Points: %v\n", points)
+	s += fmt.Sprintf("Player: %v	Round: %v   Points: %v\n", name, round, points)
 	s += m.Question + "\n"
 	for i, ans := range m.Answers{
 	    cursor := " " // no cursor
@@ -163,23 +197,37 @@ func toPokemon(mp []mongodb.MongoPokemon ,q question.Question) []pokemon.Pokemon
 }
 
 func build(q question.Question, amount int) Model {
-	mongoPokemonList := getRandomPokemon(amount, q)
-	pokemonList := toPokemon(mongoPokemonList, q)
-	answer := pokemonList[rand.Intn(amount)].GetValue()
-	var correctIndex []int
-	pokemonNameAnswer := make([]string, amount)
-	for i, v := range pokemonList {
-		pokemonNameAnswer[i] = v.GetName()
-		if v.GetValue() == answer {
-			correctIndex = append(correctIndex, i)
-		}
-	}
-	return Model {
-		Question: q.GetWhatValue() + " is " + answer,
-		Answers:  pokemonNameAnswer,
-		RightIndex: correctIndex,
-		Index: 0, 
-	}  
+    if round >= 5 {
+	return buildEndScreen();
+    }
+    mongoPokemonList := getRandomPokemon(amount, q)
+    pokemonList := toPokemon(mongoPokemonList, q)
+    answer := pokemonList[rand.Intn(amount)].GetValue()
+    var correctIndex []int
+    pokemonNameAnswer := make([]string, amount)
+    for i, v := range pokemonList {
+	    pokemonNameAnswer[i] = v.GetName()
+	    if v.GetValue() == answer {
+		    correctIndex = append(correctIndex, i)
+	    }
+    }
+    round++
+    return Model {
+	    Question: q.GetWhatValue() + " is " + answer,
+	    Answers:  pokemonNameAnswer,
+	    RightIndex: correctIndex,
+	    Index: 0, 
+    }  
+}
+
+func buildEndScreen() Model {
+   return Model {
+	isEndScreen: true,
+	Question: "Do you want to play again?",
+	Answers: []string{"replay", "quit"},
+	Index: 0,
+	RightIndex: []int{0},
+    } 
 }
 
 func randomNum() int{
