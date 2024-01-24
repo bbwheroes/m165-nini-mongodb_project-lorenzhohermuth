@@ -2,13 +2,16 @@ module m165/nini/mongodb_quiz
 
 go 1.21.4
 
-require go.mongodb.org/mongo-driver v1.13.1
+require (
+	github.com/charmbracelet/bubbletea v0.25.0
+	go.mongodb.org/mongo-driver v1.13.1
+)
 
 require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
-	github.com/charmbracelet/bubbletea v0.25.0 // indirect
 	github.com/containerd/console v1.0.4-0.20230313162750-1ae8d489ac81 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
+	github.com/kisielk/godepgraph v0.0.0-20221115040737-2d0831789458 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.18 // indirect
