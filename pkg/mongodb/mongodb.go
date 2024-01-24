@@ -7,20 +7,24 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 type MongoPokemon struct {
-    ID			primitive.ObjectID `bson:"_id"`
     PokemonId		int32		   `bson:"id"`
     Name		string		   `bson:"name"`
     Weight		int32		   `bson:"weight"`
     Height		int32		   `bson:"height"`
     BaseExperience	int32		   `bson:"base_experience"`
     IsBaseFrom		bool		   `bson:"is_base_form"`
+}
+
+type MongoStat struct {
+    Name		string		   `bson:"name"`
+    TimeMs		int64		   `bson:"time_ms"`
+    Points		int32		   `bson:"points"`
 }
 
 func (mp MongoPokemon) GetValue(value string) string {
@@ -41,11 +45,10 @@ func (mp MongoPokemon) GetValue(value string) string {
 }
 
 const db string = "webapp"
-const coll string = "pokemon"
 
-func Execute(bsonQuery bson.D) MongoPokemon{
+func GetExecute(bsonQuery bson.D) MongoPokemon{
     client, ctx, cancel := connect()
-    collection := client.Database(db).Collection(coll)
+    collection := client.Database(db).Collection("pokemon")
     res := collection.FindOne(ctx, bsonQuery)
     var result MongoPokemon
     err := res.Decode(&result)
@@ -54,6 +57,16 @@ func Execute(bsonQuery bson.D) MongoPokemon{
     }
     defer deferFunc(client, ctx, cancel)
     return result
+}
+
+func PutExecute(mp MongoStat) {
+    client, ctx, cancel := connect()
+    collection := client.Database(db).Collection("stats")
+    _, err := collection.InsertOne(ctx, mp)
+    if err != nil {
+	log.Fatal(err)
+    }
+    defer deferFunc(client, ctx, cancel)
 }
 
 func connect() (*mongo.Client, context.Context, context.CancelFunc){

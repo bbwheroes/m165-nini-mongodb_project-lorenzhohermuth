@@ -1,5 +1,6 @@
 db = db.getSiblingDB('webapp');
 db.createCollection('pokemon');
+db.createCollection('stats');
 db.pokemon.insertMany([
 	{"id":1,"name":"bulbasaur","base_experience":64,"height":7,"weight":69,"is_base_form":true},
 	{"id":2,"name":"ivysaur","base_experience":142,"height":10,"weight":130,"is_base_form":false},

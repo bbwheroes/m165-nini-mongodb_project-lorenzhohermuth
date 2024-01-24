@@ -6,6 +6,7 @@ import (
 	"m165/nini/mongodb_quiz/internal/question"
 	"m165/nini/mongodb_quiz/pkg/mongodb"
 	"os"
+	"time"
 
 	"math/rand"
 
@@ -15,10 +16,11 @@ import (
 )
 
 const pokemonAmount int = 250
-const amountPokemonOnScreen = 4
+const amountPokemonOnScreen = 3
 
 var points int = 0
 var round int = 0
+var startTime time.Time
 var name string = "Max"
 
 func main() {
@@ -75,6 +77,7 @@ func handleStartScreen(cmd tea.Cmd, msg tea.Msg, m Model) (tea.Model, tea.Cmd) {
 	    // Cool, what was the actual key pressed?
 	    switch msg.String() {
 	    case "enter":
+		startTime = time.Now()
 		name = m.nameInput.Value()
 		return build(question.GenerateQuestion(), amountPokemonOnScreen), nil
 	}
@@ -180,7 +183,7 @@ func getRandomPokemon(amount int, q question.Question) []mongodb.MongoPokemon{
     pokemons := []mongodb.MongoPokemon{}
     for i := 0 ; i < amount ; i++ {
 	query := bson.D{{"id", randomNum()}}
-	pokemons = append(pokemons, mongodb.Execute(query))
+	pokemons = append(pokemons, mongodb.GetExecute(query))
     }
     return pokemons
 }
@@ -221,7 +224,15 @@ func build(q question.Question, amount int) Model {
 }
 
 func buildEndScreen() Model {
-   return Model {
+    timeNow := time.Now()
+    duration := timeNow.Sub(startTime)
+    stats := mongodb.MongoStat {
+	Name: name,
+	Points: int32(points),
+	TimeMs: int64(duration.Milliseconds()),
+    }
+    mongodb.PutExecute(stats)
+    return Model {
 	isEndScreen: true,
 	Question: "Do you want to play again?",
 	Answers: []string{"replay", "quit"},
