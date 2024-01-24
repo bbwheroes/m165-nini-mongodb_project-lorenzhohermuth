@@ -52,7 +52,6 @@ func Execute(bsonQuery bson.D) MongoPokemon{
     if err != nil {
 	log.Fatal(err)
     }
-    log.Println(result , " :result")
     defer deferFunc(client, ctx, cancel)
     return result
 }
