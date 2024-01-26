@@ -31,14 +31,14 @@ func (mp MongoPokemon) GetValue(value string) string {
     var out string = ""
     if value == "id" { out = strconv.Itoa(int(mp.PokemonId)) }
     if value == "name" { out = mp.Name }
-    if value == "weight" { out = strconv.Itoa(int(mp.Weight)) }
-    if value == "height" { out = strconv.Itoa(int(mp.Height)) }
-    if value == "base_experience" { out = string(mp.BaseExperience) }
+    if value == "weight" { out = strconv.Itoa(int(mp.Weight / 10)) } // to get form hg to kg
+    if value == "height" { out = strconv.Itoa(int(mp.Height * 10)) } // to get from dm to cm
+    if value == "base_experience" { out = strconv.Itoa(int(mp.BaseExperience)) }
     if value == "is_base_form" {
 	if mp.IsBaseFrom {
-	    out = "true"
+	    out = "is"
 	}else {
-	    out = "false"
+	    out = "is not"
 	}
     }
     return out
