@@ -233,7 +233,7 @@ func build(q question.Question, amount int) Model {
     }
     round++
     return Model {
-	    Question: q.GetWhatValue() + " is " + answer,
+	    Question: fmt.Sprintf(q.GetQuestionText(), answer),
 	    Answers:  pokemonNameAnswer,
 	    RightIndex: correctIndex,
 	    Index: 0, 
