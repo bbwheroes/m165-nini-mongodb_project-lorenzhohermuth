@@ -46,7 +46,7 @@ func (mp MongoPokemon) GetValue(value string) string {
 
 const db string = "webapp"
 
-func GetExecute(bsonQuery bson.D) MongoPokemon{
+func GetExecutePokemon(bsonQuery bson.D) MongoPokemon{
     client, ctx, cancel := connect()
     collection := client.Database(db).Collection("pokemon")
     res := collection.FindOne(ctx, bsonQuery)
@@ -57,6 +57,27 @@ func GetExecute(bsonQuery bson.D) MongoPokemon{
     }
     defer deferFunc(client, ctx, cancel)
     return result
+}
+
+func GetExecuteStat(bsonQuery bson.D, limit int64) []MongoStat{
+    client, ctx, cancel := connect()
+    collection := client.Database(db).Collection("stats")
+    opts := options.Find().SetSort(bsonQuery).SetLimit(limit)
+    cur, err := collection.Find(ctx, bson.D{}, opts)
+    var out []MongoStat
+    if err != nil {
+	log.Fatal(err)
+    }
+    for cur.Next(ctx) {
+	var result MongoStat
+	err = cur.Decode(&result)
+	if err != nil {
+	    log.Fatal(err)
+	}
+	out = append(out, result)
+    }
+    defer deferFunc(client, ctx, cancel)
+    return out
 }
 
 func PutExecute(mp MongoStat) {
