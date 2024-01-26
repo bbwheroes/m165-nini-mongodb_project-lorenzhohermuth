@@ -161,6 +161,7 @@ func contains(s []int, e int) bool {
 func (m Model) View() string {
     var s string
     if m.isStartScreen {
+	s += "Whats your name?\n"
 	s += m.nameInput.View()
     } else if m.isEndScreen{
 	s += "Game Finished\n\n"
@@ -170,7 +171,7 @@ func (m Model) View() string {
 	s += fmt.Sprintf("Player: %v Round: %v Points: %v\n", name, round, points)
 	s += m.Question + "\n"
 	for i, ans := range m.Answers{
-	    cursor := " " // no cursor
+	    cursor := " " //no cursor
 	    if m.Index == i {
 		cursor = ">" // cursor!
 	    }
@@ -250,20 +251,20 @@ func buildEndScreen() Model {
     mongodb.PutExecute(stats)
     top := getTop3Players()
     m := Model {
-	top1: fmt.Sprintf("Player: %v Points: %v Time: %v", top[0].Name, top[0].Points, top[0].TimeMs),
+	top1: fmt.Sprintf("Player: %v Points: %v Time: %vs", top[0].Name, top[0].Points, float32(top[0].TimeMs) / 1000),
 	top2: "",
 	top3: "",
 	isEndScreen: true,
 	Question: "Do you want to play again?",
 	Answers: []string{"quit", "replay"},
-	Index: 1,
+	Index: 0,
 	RightIndex: []int{1},
     } 
-    if len(top) < 1 {
-	m.top2 = fmt.Sprintf("Player: %v Points: %v Time: %v", top[1].Name, top[1].Points, top[1].TimeMs)
+    if len(top) > 1 {
+	m.top2 = fmt.Sprintf("Player: %v Points: %v Time: %vs", top[1].Name, top[1].Points, float32(top[1].TimeMs) / 1000)
     }
-    if len(top) < 2 {
-	m.top3 = fmt.Sprintf("Player: %v Points: %v Time: %v", top[2].Name, top[2].Points, top[2].TimeMs)
+    if len(top) > 2 {
+	m.top3 = fmt.Sprintf("Player: %v Points: %v Time: %vs", top[2].Name, top[2].Points, float32(top[2].TimeMs) / 1000)
     }
     return m
 }
