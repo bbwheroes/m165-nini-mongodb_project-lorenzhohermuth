@@ -9,6 +9,8 @@ git clone https://github.com/bbwheroes/m165-nini-mongodb_quiz-lorenzhohermuth.gi
 # path has to be in $PATH env var
 export PATH=$PATH:/path/to/your/install/directory #Linux
 set PATH=%PATH%;C:\path\to\your\install\directory #Windows
+# or add to your enviroment var
+# or in .bashrc
 # set GOBIN env var
 go env -w GOBIN=/path/to/your/bin
 # to install
