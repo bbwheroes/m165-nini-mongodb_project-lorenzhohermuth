@@ -14,7 +14,7 @@ set PATH=%PATH%;C:\path\to\your\install\directory #Windows
 # set GOBIN env var
 go env -w GOBIN=/path/to/your/bin
 # to install
-cd cd m165-nini-mongodb_quiz-lorenzhohermuth && go install cmd/mongodb_quiz/pokemon-quiz.go
+cd m165-nini-mongodb_quiz-lorenzhohermuth && go install cmd/mongodb_quiz/pokemon-quiz.go
 # db
 docker compose up
 # run app
